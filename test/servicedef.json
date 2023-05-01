@@ -1,0 +1,67 @@
+{
+  "deploymentConfiguration": {
+    "deploymentCircuitBreaker": {
+      "enable": false,
+      "rollback": false
+    },
+    "maximumPercent": 200,
+    "minimumHealthyPercent": 100
+  },
+  "deploymentController": {
+    "type": "ECS"
+  },
+  "desiredCount": 1,
+  "enableECSManagedTags": false,
+  "enableExecuteCommand": false,
+  "healthCheckGracePeriodSeconds": 0,
+  "launchType": "FARGATE",
+  "loadBalancers": [
+    {
+      "containerName": "app",
+      "containerPort": 8080,
+      "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:539916835077:targetgroup/example-app-on-ecs/094d5a952d1f9f8c"
+    }
+  ],
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "assignPublicIp": "DISABLED",
+      "securityGroups": [
+        "sg-0cf049bb4d7ba464b",
+        "sg-0f6fa2b2a402a0471"
+      ],
+      "subnets": [
+        "subnet-0fcec5832905228be",
+        "subnet-00e0ddd410f2fe8f6",
+        "subnet-0444ba406ffd7370d"
+      ]
+    }
+  },
+  "pendingCount": 0,
+  "platformFamily": "Linux",
+  "platformVersion": "LATEST",
+  "propagateTags": "SERVICE",
+  "runningCount": 0,
+  "schedulingStrategy": "REPLICA",
+  "tags": [
+    {
+      "key": "Environment",
+      "value": "ue2"
+    },
+    {
+      "key": "Stage",
+      "value": "sandbox"
+    },
+    {
+      "key": "Tenant",
+      "value": "plat"
+    },
+    {
+      "key": "Namespace",
+      "value": "cplive"
+    },
+    {
+      "key": "Name",
+      "value": "cplive-plat-ue2-sandbox-example-app-on-ecs"
+    }
+  ]
+}

@@ -25,7 +25,13 @@ jobs:
       - uses: ./
         id: current
         with:
-          param1: 'true'
+          image: nginx
+          image-tag: latest
+          region: us-east-2
+          operation: deploy
+          cluster: cplive-plat-ue2-sandbox
+          application: cplive-plat-ue2-sandbox-example-app-on-ecs
+          taskdef-path: ./test/taskdef.json
 
     outputs:
       result: "${{ steps.current.outputs.result1 }}"

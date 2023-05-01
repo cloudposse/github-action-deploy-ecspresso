@@ -1,23 +1,137 @@
-name: 'Example composite GitHub action'
-description: 'Example composite GitHub action'
+name: 'Deploy Ecspresso'
+description: 'Deploy ECS with Ecspresso'
 author: hello@cloudposse.com
 branding:
-  icon: 'file'
+  icon: 'search'
   color: 'white'
 inputs:
-  param1:
+  image:
+    description: Docker image
     required: true
-    description: "Input parameter placeholder"
-    default: "true"
+  image-tag:
+    description: Docker image tag
+    required: true
+  debug:
+    description: Debug mode
+    default: 'false'
+    required: false
+  region:
+    description: AWS Region
+    required: true
+  operation:
+    description: Operation (valid options - `deploy`, `destroy`)
+    required: true
+    default: deploy
+  cluster:
+    description: Cluster name
+    required: true
+  ecspresso-version:
+    description: Ecspresso version
+    required: false
+    default: v2.1.0
+  application:
+    description: Application name
+    required: true
+  taskdef-path:
+    description: Task definition path
+    required: true
+  timeout:
+    description: Ecspresso timeout
+    required: false
+    default: 5m
+
+  ssm-path:
+    required: false
+    description: SSM path for Docker image
+  namespace:
+    description: Namespace
+    required: false
+  webapp-output-name:
+    required: false
+    description: "Spacelist stack output field contains webapp host name"
+    default: "full_domain"
+
+  environment:
+    description: Helmfile environment
+    required: false
+    default: preview
+  gitref-sha:
+    description: Git SHA
+    required: false
+    default: ''
+  release_label_name:
+    description: The name of the label used to describe the helm release
+    default: "release"
+    required: false
+  values_yaml:
+    description: YAML string with extra values to use in a helmfile deploy
+    required: false
+  helm_version:
+    description: Helm version
+    default: 3.11.1
+  helmfile_version:
+    description: Helmfile version
+    default: 0.143.5
+  kubectl_version:
+    description: Kubectl version
+    default: 1.26.3
+  chamber_version:
+    description: Kubectl version
+    default: 2.11.1
+
+  repository:
+    description: Application GitHub repository full name
+    required: true
+  ref:
+    description: Git ref
+    required: true
+  values_file:
+    description: Helmfile values file
+    default: ""
+    required: false
+  github-pat:
+    description: Github PAT to access argocd configuration repository
+    required: true
+  synchronously:
+    description: "Wait until ArgoCD successfully apply the changes"
+    default: 'false'
+
+
 outputs:
-  result1:
-    description: "Output result placeholder"
-    value: "${{ steps.context.outputs.action-result }}"
+  webapp-url:
+    description: "Web Application url"
+    value: https://${{ steps.webapp.outputs.output }}
+
+
 runs:
   using: "composite"
   steps:
-    - id: context
+    - name: 'Install jq 1.6'
+      uses: dcarbone/install-jq-action@v1.0.1
+      with:
+        version: 1.6
+        force: 'true'
+
+    - uses: kayac/ecspresso@v2
+      with:
+        version: ${{ inputs.ecspresso-version }}
+
+    - uses: 1arp/create-a-file-action@0.2
+      with:
+        path: './'
+        file: 'ecspresso.yml'
+        content: |
+          region: ${{ inputs.region }}
+          cluster: ${{ inputs.cluster }}
+          service: ${{ inputs.application }}
+          task_definition: ${{ inputs.taskdef-path }}
+          timeout: ${{ inputs.timeout }}
+
+    - name: Deploy
+      if: ${{ inputs.operation == 'deploy' }}
       shell: bash
       run: |
-          echo "::set-output name=action-result::${{ inputs.param1 }}"
-
+        ecspresso --config=./ecspresso.yml deploy
+      env:
+        IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
+        AWS_REGION: ${{ inputs.region }}
