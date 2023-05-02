@@ -36,7 +36,7 @@ jobs:
       - uses: ./
         id: current
         with:
-          image: nginx
+          image: 252494810635.dkr.ecr.us-east-2.amazonaws.com/cloudposse/example-app-on-ecs
           image-tag: latest
           region: us-east-2
           operation: deploy
