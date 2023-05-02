@@ -22,6 +22,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2.0.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          role-skip-session-tagging: true
+
       - uses: ./
         id: current
         with:
