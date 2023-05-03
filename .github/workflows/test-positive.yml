@@ -7,6 +7,10 @@ on:
 #  pull_request: {}
   workflow_dispatch: {}
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -22,13 +26,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2.0.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          role-skip-session-tagging: true
+
       - uses: ./
         id: current
         with:
-          param1: 'true'
+          image: 252494810635.dkr.ecr.us-east-2.amazonaws.com/cloudposse/example-app-on-ecs
+          image-tag: latest
+          region: us-east-2
+          operation: deploy
+          cluster: cplive-plat-ue2-sandbox
+          application: cplive-plat-ue2-sandbox-example-app-on-ecs
+          taskdef-path: ./test/taskdef.json
 
     outputs:
-      result: "${{ steps.current.outputs.result1 }}"
+      result: "${{ steps.current.outcome }}"
 
   assert:
     runs-on: ubuntu-latest
@@ -36,7 +53,7 @@ jobs:
     steps:
       - uses: nick-fields/assert-action@v1
         with:
-          expected: 'true'
+          expected: 'success'
           actual: "${{ needs.test.outputs.result }}"
 
   teardown:

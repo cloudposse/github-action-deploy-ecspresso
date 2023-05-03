@@ -5,7 +5,7 @@
 #
 
 # Name of this project
-name: example-github-action-composite
+name: github-action-deploy-ecspresso
 
 # Tags of this project
 tags:
@@ -18,13 +18,13 @@ tags:
 license: "APACHE2"
 
 # Canonical GitHub repo
-github_repo: cloudposse/example-github-action-composite
+github_repo: cloudposse/github-action-deploy-ecspresso
 
 # Badges to display
 badges:
   - name: "Latest Release"
-    image: "https://img.shields.io/github/release/cloudposse/example-github-action-composite.svg"
-    url: "https://github.com/cloudposse/example-github-action-composite/releases/latest"
+    image: "https://img.shields.io/github/release/cloudposse/github-action-deploy-ecspresso.svg"
+    url: "https://github.com/cloudposse/github-action-deploy-ecspresso/releases/latest"
   - name: "Slack Community"
     image: "https://slack.cloudposse.com/badge.svg"
     url: "https://slack.cloudposse.com"
@@ -32,7 +32,7 @@ badges:
 related: []
 
 # Short description of this project
-description: Template repository of composite GitHub Action
+description: Deploy on ECS with [Escpresso](https://github.com/kayac/ecspresso)
 
 introduction: |-
   This is template repository to create composite GitHub Actions. 
@@ -51,22 +51,27 @@ usage: |-
   ```yaml
     name: Pull Request
     on:
-      pull_request:
+      push:
         branches: [ 'main' ]
-        types: [opened, synchronize, reopened, closed, labeled, unlabeled]
 
     jobs:
       context:
         runs-on: ubuntu-latest
         steps:
           - name: Example action
-            uses: cloudposse/example-github-action-composite@main
+            uses: cloudposse/example-github-action-deploy-ecspresso@main
             id: example
             with:
-              param1: true
+              image: 1111111111111.dkr.ecr.us-east-2.amazonaws.com/cloudposse/example-app-on-ecs
+              image-tag: latest
+              region: us-east-2
+              operation: deploy
+              cluster: acme-plat-ue2-sandbox
+              application: acme-plat-ue2-sandbox-example-app-on-ecs
+              taskdef-path: taskdef.json
   
         outputs:
-          result: ${{ steps.example.outputs.result1 }}
+          result: ${{ steps.example.outputs.webapp-url }}
   ```
 
 include:
