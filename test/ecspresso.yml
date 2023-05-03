@@ -1,0 +1,6 @@
+region: us-east-2
+cluster: cplive-plat-ue2-sandbox
+service: cplive-plat-ue2-sandbox-example-app-on-ecs
+# service_definition: servicedef.json
+task_definition: taskdef.json
+timeout: 5m

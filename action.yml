@@ -40,63 +40,6 @@ inputs:
     required: false
     default: 5m
 
-  ssm-path:
-    required: false
-    description: SSM path for Docker image
-  namespace:
-    description: Namespace
-    required: false
-  webapp-output-name:
-    required: false
-    description: "Spacelist stack output field contains webapp host name"
-    default: "full_domain"
-
-  environment:
-    description: Helmfile environment
-    required: false
-    default: preview
-  gitref-sha:
-    description: Git SHA
-    required: false
-    default: ''
-  release_label_name:
-    description: The name of the label used to describe the helm release
-    default: "release"
-    required: false
-  values_yaml:
-    description: YAML string with extra values to use in a helmfile deploy
-    required: false
-  helm_version:
-    description: Helm version
-    default: 3.11.1
-  helmfile_version:
-    description: Helmfile version
-    default: 0.143.5
-  kubectl_version:
-    description: Kubectl version
-    default: 1.26.3
-  chamber_version:
-    description: Kubectl version
-    default: 2.11.1
-
-  repository:
-    description: Application GitHub repository full name
-    required: true
-  ref:
-    description: Git ref
-    required: true
-  values_file:
-    description: Helmfile values file
-    default: ""
-    required: false
-  github-pat:
-    description: Github PAT to access argocd configuration repository
-    required: true
-  synchronously:
-    description: "Wait until ArgoCD successfully apply the changes"
-    default: 'false'
-
-
 outputs:
   webapp-url:
     description: "Web Application url"
