@@ -43,7 +43,8 @@ inputs:
 outputs:
   webapp-url:
     description: "Web Application url"
-    value: https://${{ steps.webapp.outputs.output }}
+    value: 'null'
+          # https://${{ steps.webapp.outputs.output }}
 
 
 runs:

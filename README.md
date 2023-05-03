@@ -72,22 +72,27 @@ Feel free to use it as reference and starting point.
 ```yaml
   name: Pull Request
   on:
-    pull_request:
+    push:
       branches: [ 'main' ]
-      types: [opened, synchronize, reopened, closed, labeled, unlabeled]
 
   jobs:
     context:
       runs-on: ubuntu-latest
       steps:
         - name: Example action
-          uses: cloudposse/example-github-action-composite@main
+          uses: cloudposse/example-github-action-deploy-ecspresso@main
           id: example
           with:
-            param1: true
+            image: 1111111111111.dkr.ecr.us-east-2.amazonaws.com/cloudposse/example-app-on-ecs
+            image-tag: latest
+            region: us-east-2
+            operation: deploy
+            cluster: acme-plat-ue2-sandbox
+            application: acme-plat-ue2-sandbox-example-app-on-ecs
+            taskdef-path: taskdef.json
 
       outputs:
-        result: ${{ steps.example.outputs.result1 }}
+        result: ${{ steps.example.outputs.webapp-url }}
 ```
 
 
