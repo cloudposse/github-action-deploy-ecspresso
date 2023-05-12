@@ -56,7 +56,7 @@ runs:
         version: 1.6
         force: 'true'
 
-    - uses: kayac/ecspresso@v2
+    - uses: cloudposse/ecspresso@install-into-toolchain
       with:
         version: ${{ inputs.ecspresso-version }}
 
