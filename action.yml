@@ -100,10 +100,10 @@ runs:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
 
-    - uses: shallwefootball/upload-s3-action@v1.3.3
-      name: Mirror task definition on S3
+    - name: Mirror task definition on S3
       id: s3
-      with:
-        aws_bucket: ${{ inputs.cluster }}
-        source_dir: /tmp/${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
-        destination_dir: ${{ inputs.application }}/task-definition.json
+      uses: zdurham/s3-upload-github-action@master
+      env:
+        FILE: /tmp/${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        S3_BUCKET: ${{ inputs.cluster }}
+        S3_KEY: ${{ inputs.application }}/task-definition.json
