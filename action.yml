@@ -79,3 +79,31 @@ runs:
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
+
+    - name: Set random environment variables
+      uses: joellefkowitz/random-env@v1.0.0
+      with:
+        names: |
+          TMP_DIR_NAME
+
+    - name: Create TMP dir
+      shell: bash
+      run: |
+        mkdir /tmp/${{ env.TMP_DIR_NAME }}
+
+    - name: S3 mirroring
+      if: ${{ inputs.operation == 'deploy' }}
+      shell: bash
+      run: |
+        ecspresso --config=./ecspresso.yml render task-definition > /tmp/${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+      env:
+        IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
+        AWS_REGION: ${{ inputs.region }}
+
+    - uses: shallwefootball/s3-upload-action@v1.3.3
+      name: Mirror task definition on S3
+      id: s3
+      with:
+        aws_bucket: ${{ inputs.cluster }}
+        source_dir: /tmp/${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        destination_dir: ${{ inputs.application }}/task-definition.json
