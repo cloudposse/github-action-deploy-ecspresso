@@ -100,7 +100,7 @@ runs:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
 
-    - uses: shallwefootball/s3-upload-action@v1.3.3
+    - uses: shallwefootball/upload-s3-action@v1.3.3
       name: Mirror task definition on S3
       id: s3
       with:
