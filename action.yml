@@ -89,13 +89,13 @@ runs:
     - name: Create TMP dir
       shell: bash
       run: |
-        mkdir /tmp/${{ env.TMP_DIR_NAME }}
+        mkdir ./${{ env.TMP_DIR_NAME }}
 
     - name: S3 mirroring
       if: ${{ inputs.operation == 'deploy' }}
       shell: bash
       run: |
-        ecspresso --config=./ecspresso.yml render task-definition > /tmp/${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        ecspresso --config=./ecspresso.yml render task-definition > ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
@@ -104,6 +104,11 @@ runs:
       id: s3
       uses: zdurham/s3-upload-github-action@master
       env:
-        FILE: /tmp/${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        FILE: ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
         S3_BUCKET: ${{ inputs.cluster }}
         S3_KEY: ${{ inputs.application }}/task-definition.json
+
+    - name: Cleanup TMP dir
+      shell: bash
+      run: |
+        rm -rf ./${{ env.TMP_DIR_NAME }}
