@@ -85,7 +85,7 @@ runs:
 
     - name: Set random environment variables
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
-      uses: joellefkowitz/random-env@v1.0.0
+      uses: joellefkowitz/random-env@v1.2.0
       with:
         names: |
           TMP_DIR_NAME
