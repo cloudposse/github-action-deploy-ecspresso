@@ -39,6 +39,9 @@ inputs:
     description: Ecspresso timeout
     required: false
     default: 5m
+  mirror_to_s3_bucket:
+    description: Mirror task definition to s3 bucket
+    required: false
 
 outputs:
   webapp-url:
@@ -79,3 +82,40 @@ runs:
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
+
+    - name: Set random environment variables
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      uses: joellefkowitz/random-env@v1.0.0
+      with:
+        names: |
+          TMP_DIR_NAME
+
+    - name: Create TMP dir
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      shell: bash
+      run: |
+        mkdir ./${{ env.TMP_DIR_NAME }}
+
+    - name: S3 mirroring
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      shell: bash
+      run: |
+        ecspresso --config=./ecspresso.yml render task-definition > ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+      env:
+        IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
+        AWS_REGION: ${{ inputs.region }}
+
+    - name: Mirror task definition on S3
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      id: s3
+      uses: zdurham/s3-upload-github-action@master
+      env:
+        FILE: ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
+        S3_KEY: ${{ inputs.application }}/task-definition.json
+
+    - name: Cleanup TMP dir
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      shell: bash
+      run: |
+        rm -rf ./${{ env.TMP_DIR_NAME }}

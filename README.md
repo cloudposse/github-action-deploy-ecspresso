@@ -112,6 +112,7 @@ Feel free to use it as reference and starting point.
 | ecspresso-version | Ecspresso version | v2.1.0 | false |
 | image | Docker image | N/A | true |
 | image-tag | Docker image tag | N/A | true |
+| mirror\_to\_s3\_bucket | Mirror task definition to s3 bucket | N/A | false |
 | operation | Operation (valid options - `deploy`, `destroy`) | deploy | true |
 | region | AWS Region | N/A | true |
 | taskdef-path | Task definition path | N/A | true |
