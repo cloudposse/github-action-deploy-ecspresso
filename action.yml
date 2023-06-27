@@ -88,7 +88,7 @@ runs:
       id: tmp
       shell: bash
       run: |
-        echo $RANDOM | md5sum | head -c 20
+        VALUE=$(echo $RANDOM | md5sum | head -c 20)
         echo "dir_name=${VALUE}" >> $GITHUB_OUTPUT
 
     - name: Create TMP dir
