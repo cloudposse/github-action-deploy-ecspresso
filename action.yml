@@ -112,7 +112,7 @@ runs:
       env:
         FILE: ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
         S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
-        S3_KEY: ${{ inputs.application }}/task-definition.json
+        S3_KEY: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
 
     - name: Cleanup TMP dir
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
