@@ -85,23 +85,23 @@ runs:
 
     - name: Set random environment variables
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
-      uses: TGPSKI/name-generator-node-action@v2
-      id: generator
-      with:
-        separator: '_'
-        length: '2'
+      id: tmp
+      shell: bash
+      run: |
+        echo $RANDOM | md5sum | head -c 20
+        echo "dir_name=${VALUE}" >> $GITHUB_OUTPUT
 
     - name: Create TMP dir
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        mkdir ./${{ steps.generator.outputs.name }}
+        mkdir ./${{ steps.tmp.outputs.dir_name }}
 
     - name: S3 mirroring
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.generator.outputs.name }}/${{ inputs.application }}.json
+        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
@@ -109,9 +109,9 @@ runs:
     - name: Mirror task definition on S3
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       id: s3
-      uses: zdurham/s3-upload-github-action@1.0.1
+      uses: zdurham/s3-upload-github-action@master
       env:
-        FILE: ./${{ steps.generator.outputs.name }}/${{ inputs.application }}.json
+        FILE: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
         S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
         S3_KEY: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
 
@@ -119,4 +119,4 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        rm -rf ./${{ steps.generator.outputs.name }}
+        rm -rf ./${{ steps.tmp.outputs.dir_name }}
