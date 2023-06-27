@@ -89,7 +89,7 @@ runs:
       id: generator
       with:
         separator: '_'
-        length: '12'
+        length: '2'
 
     - name: Create TMP dir
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
