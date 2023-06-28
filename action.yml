@@ -116,6 +116,8 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       id: s3
       uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd
+      with:
+        args: --server-side-encryption AES256
       env:
         FILE: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
         S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
