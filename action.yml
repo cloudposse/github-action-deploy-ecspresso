@@ -110,7 +110,7 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        aws s3 ls
+        aws sts get-caller-identity
 
     - name: Mirror task definition on S3
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
