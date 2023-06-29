@@ -85,22 +85,23 @@ runs:
 
     - name: Set random environment variables
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
-      uses: joellefkowitz/random-env@v1.2.0
-      with:
-        names: |
-          TMP_DIR_NAME
+      id: tmp
+      shell: bash
+      run: |
+        VALUE=$(echo $RANDOM | md5sum | head -c 20)
+        echo "dir_name=${VALUE}" >> $GITHUB_OUTPUT
 
     - name: Create TMP dir
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        mkdir ./${{ env.TMP_DIR_NAME }}
+        mkdir ./${{ steps.tmp.outputs.dir_name }}
 
     - name: S3 mirroring
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        ecspresso --config=./ecspresso.yml render task-definition > ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
@@ -108,9 +109,11 @@ runs:
     - name: Mirror task definition on S3
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       id: s3
-      uses: zdurham/s3-upload-github-action@master
+      uses: zdurham/s3-upload-github-action@161dfa6991b9d88a97f02f4aeb5dcd26ea7e03cd
+      with:
+        args: "--sse AES256"
       env:
-        FILE: ./${{ env.TMP_DIR_NAME }}/${{ inputs.application }}.json
+        FILE: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
         S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
         S3_KEY: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
 
@@ -118,4 +121,4 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        rm -rf ./${{ env.TMP_DIR_NAME }}
+        rm -rf ./${{ steps.tmp.outputs.dir_name }}
