@@ -93,7 +93,7 @@ runs:
       uses: keithweaver/aws-s3-github-action@v1.0.0
       with:
         command: cp
-        source: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
+        source: s3://${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
         destination: ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json
         aws_region: ${{ inputs.region }}
 
