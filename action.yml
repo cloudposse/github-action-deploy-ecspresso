@@ -97,6 +97,34 @@ runs:
       run: |
         mkdir ./${{ steps.tmp.outputs.dir_name }}
 
+    - name: Fetch Current Task Definition
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      uses: keithweaver/aws-s3-github-action@v1.0.0
+      with:
+        command: cp
+        source: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
+        destination: ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: ${{ inputs.region }}
+
+    - name: Merge Task Definitions
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      shell: bash
+      run: |
+        jq -s '.[0] * .[1]' ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json ${{ inputs.taskdef-path }} > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
+    - name: Debug
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      shell: bash
+      run: |
+        echo "----------------- S3 Task Definition -----------------"
+        cat ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json
+        echo "----------------- Current Task Definition -----------------"
+        cat ${{ inputs.taskdef-path }}
+        echo "----------------- Merged Task Definition -----------------"
+        cat ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
     - name: S3 mirroring
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
