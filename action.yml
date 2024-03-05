@@ -74,15 +74,6 @@ runs:
           task_definition: ${{ inputs.taskdef-path }}
           timeout: ${{ inputs.timeout }}
 
-    - name: Deploy
-      if: ${{ inputs.operation == 'deploy' }}
-      shell: bash
-      run: |
-        ecspresso --config=./ecspresso.yml deploy
-      env:
-        IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
-        AWS_REGION: ${{ inputs.region }}
-
     - name: Set random environment variables
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       id: tmp
@@ -122,6 +113,15 @@ runs:
         cat ${{ inputs.taskdef-path }}
         echo "----------------- Merged Task Definition -----------------"
         cat ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
+    - name: Deploy
+      if: ${{ inputs.operation == 'deploy' }}
+      shell: bash
+      run: |
+        ecspresso --config=./ecspresso.yml deploy
+      env:
+        IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
+        AWS_REGION: ${{ inputs.region }}
 
     - name: S3 mirroring
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
