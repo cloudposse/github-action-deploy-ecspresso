@@ -104,8 +104,6 @@ runs:
         command: cp
         source: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
         destination: ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws_region: ${{ inputs.region }}
 
     - name: Merge Task Definitions
