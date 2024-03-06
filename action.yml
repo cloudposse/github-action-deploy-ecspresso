@@ -63,17 +63,6 @@ runs:
       with:
         version: ${{ inputs.ecspresso-version }}
 
-    - uses: 1arp/create-a-file-action@0.2
-      with:
-        path: './'
-        file: 'ecspresso.yml'
-        content: |
-          region: ${{ inputs.region }}
-          cluster: ${{ inputs.cluster }}
-          service: ${{ inputs.application }}
-          task_definition: ${{ inputs.taskdef-path }}
-          timeout: ${{ inputs.timeout }}
-
     - name: Set random environment variables
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       id: tmp
@@ -113,6 +102,17 @@ runs:
         cat ${{ inputs.taskdef-path }}
         echo "----------------- Merged Task Definition -----------------"
         cat ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
+    - uses: 1arp/create-a-file-action@0.2
+      with:
+        path: './'
+        file: 'ecspresso.yml'
+        content: |
+          region: ${{ inputs.region }}
+          cluster: ${{ inputs.cluster }}
+          service: ${{ inputs.application }}
+          task_definition: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+          timeout: ${{ inputs.timeout }}
 
     - name: Deploy
       if: ${{ inputs.operation == 'deploy' }}
