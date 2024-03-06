@@ -101,7 +101,7 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        jq -s '.[0] * .[1]' ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json ${{ inputs.taskdef-path }} > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        jq --slurp 'first(.[] + { containerDefinitions: ([.[].containerDefinitions[] | to_entries] | flatten | reduce .[] as $dot ({}; .[$dot.key] = $dot.value)) })' ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json ${{ inputs.taskdef-path }} > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Debug
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
