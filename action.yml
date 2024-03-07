@@ -135,7 +135,7 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.tmp.outputs.dir_name }}/task-definition.json
+        ecspresso --config=./ecspresso.yml render task-definition | jq 'del(..|select(. == ""))' > ./${{ steps.tmp.outputs.dir_name }}/task-definition.json
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
