@@ -95,7 +95,7 @@ runs:
         jq -s '.[].containerDefinitions | map( { (.name|tostring): . } ) | add' ${{ inputs.taskdef-path }} > $TEMP/app_container_map.json
         jq -s '.[0] * .[1]' $TEMP/s3_container_map.json $TEMP/app_container_map.json > $TEMP/mergedContainerDefinitionMap.json
         jq -s '[.[] | to_entries] | flatten | [.[] | .value] | {"containerDefinitions": .}' $TEMP/mergedContainerDefinitionMap.json > $TEMP/containerDefinitions.json
-        jq -s '.[0] * .[1]' $TEMP/s3_task_def.json ${{ inputs.taskdef-path }} $TEMP/containerDefinitions.json > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        jq -s '.[0] * .[1] * .[2]' $TEMP/s3_task_def.json ${{ inputs.taskdef-path }} $TEMP/containerDefinitions.json > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Debug
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
