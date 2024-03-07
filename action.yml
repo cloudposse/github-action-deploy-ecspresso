@@ -97,7 +97,7 @@ runs:
       shell: bash
       run: |
         echo "----------------- S3 Task Definition -----------------"
-        cat ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json
+        cat ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json | jq
         echo "----------------- Current Task Definition -----------------"
         cat ${{ inputs.taskdef-path }}
         echo "----------------- Merged Task Definition -----------------"
