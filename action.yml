@@ -66,7 +66,7 @@ runs:
         version: ${{ inputs.ecspresso-version }}
 
     - name: Set random environment variables
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' }}
       id: tmp
       shell: bash
       run: |
@@ -152,7 +152,7 @@ runs:
         S3_KEY: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
 
     - name: Cleanup TMP dir
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' }}
       shell: bash
       run: |
         rm -rf ./${{ steps.tmp.outputs.dir_name }}
