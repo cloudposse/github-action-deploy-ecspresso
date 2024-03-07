@@ -56,7 +56,7 @@ runs:
   using: "composite"
   steps:
     - name: 'Install jq 1.6'
-      uses: dcarbone/install-jq-action@v1.0.1
+      uses: dcarbone/install-jq-action@v2.1.0
       with:
         version: 1.6
         force: 'true'
@@ -111,7 +111,7 @@ runs:
         echo "----------------- Merged Task Definition -----------------"
         cat ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
-    - uses: 1arp/create-a-file-action@0.2
+    - uses: 1arp/create-a-file-action@0.3
       with:
         path: './'
         file: 'ecspresso.yml'

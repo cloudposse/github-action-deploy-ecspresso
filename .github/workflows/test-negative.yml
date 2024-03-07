@@ -24,10 +24,10 @@ jobs:
     needs: [setup]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2.2.0
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-region: us-east-2
           role-to-assume: ${{ secrets.IAM_ROLE }}
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test]
     steps:
-      - uses: nick-fields/assert-action@v1
+      - uses: nick-fields/assert-action@v2
         with:
           expected: 'failure'
           actual: "${{ needs.test.outputs.result }}"
