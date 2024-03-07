@@ -42,7 +42,9 @@ inputs:
   mirror_to_s3_bucket:
     description: Mirror task definition to s3 bucket
     required: false
-
+  template_from_s3_bucket:
+    description: Mirror task definition to s3 bucket
+    required: false
 outputs:
   webapp-url:
     description: "Web Application url"
@@ -72,13 +74,14 @@ runs:
         echo "dir_name=${VALUE}" >> $GITHUB_OUTPUT
 
     - name: Create TMP dir
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' }}
       shell: bash
       run: |
         mkdir ./${{ steps.tmp.outputs.dir_name }}
+        cp ${{ inputs.taskdef-path }} ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Fetch Current Task Definition
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.template_from_s3_bucket != '' }}
       uses: keithweaver/aws-s3-github-action@v1.0.0
       with:
         command: cp
@@ -87,7 +90,7 @@ runs:
         aws_region: ${{ inputs.region }}
 
     - name: Merge Task Definitions
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.template_from_s3_bucket != '' }}
       shell: bash
       run: |
         TEMP="./${{ steps.tmp.outputs.dir_name }}"
@@ -98,7 +101,7 @@ runs:
         jq -s '.[0] * .[1] * .[2]' $TEMP/s3_task_def.json ${{ inputs.taskdef-path }} $TEMP/containerDefinitions.json > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Debug
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.template_from_s3_bucket != '' && inputs.debug == 'true'}}
       shell: bash
       run: |
         echo "----------------- S3 Task Definition -----------------"
