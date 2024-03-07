@@ -73,7 +73,18 @@ usage: |-
         outputs:
           result: ${{ steps.example.outputs.webapp-url }}
   ```
+  
+  ## S3 Mirroring
+  
+  This action supports s3 mirroring. This means the [`ecs-service`](https://github.com/cloudposse/terraform-aws-components/tree/main/modules/ecs-service) component will upload a task definition template to S3, this action will use and merge that template with the task definition from the repository and then deploy the merged task definition to ECS.
+  
+  This action will then upload the `task-definition.json` that was rendered back to S3. The `ecs-service` component will use the `task-definition.json` file to deploy the application. This ensures future infrastructure deployments do not override application changes, such as image updates, environment variable changes, etc.
+  
+  The Infrastructure repository then manages things like Volumes and EFS mounts, and the Application repository manages the application code and environment variables.
 
+  ![S3 Mirroring](docs/github-action-deploy-ecspresso_s3-mirroring.drawio.png)
+  
+  
 include:
   - "docs/github-action.md"
 
