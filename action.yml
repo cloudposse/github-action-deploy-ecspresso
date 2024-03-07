@@ -127,7 +127,7 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.tmp.outputs.dir_name }}/task-definition.json
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
@@ -139,7 +139,7 @@ runs:
       with:
         args: "--sse AES256"
       env:
-        FILE: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        FILE: ./${{ steps.tmp.outputs.dir_name }}/task-definition.json
         S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
         S3_KEY: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
 
