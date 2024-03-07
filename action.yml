@@ -90,7 +90,12 @@ runs:
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        jq --slurp 'first(.[] + { containerDefinitions: ([.[].containerDefinitions[] | to_entries] | flatten | reduce .[] as $dot ([]; .[0][$dot.key] = $dot.value)) })' ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json ${{ inputs.taskdef-path }} > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json || echo '{}' > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        TEMP="./${{ steps.tmp.outputs.dir_name }}"
+        jq -s '.[].containerDefinitions | map( { (.name|tostring): . } ) | add' $TEMP/s3_task_def.json > $TEMP/s3_container_map.json
+        jq -s '.[].containerDefinitions | map( { (.name|tostring): . } ) | add' ${{ inputs.taskdef-path }} > $TEMP/app_container_map.json
+        jq -s '.[0] * .[1]' $TEMP/s3_container_map.json $TEMP/app_container_map.json > $TEMP/mergedContainerDefinitionMap.json
+        jq -s '[.[] | to_entries] | flatten | [.[] | .value] | {"containerDefinitions": .}' $TEMP/mergedContainerDefinitionMap.json > $TEMP/containerDefinitions.json
+        jq -s '.[0] * .[1]' $TEMP/s3_task_def.json ${{ inputs.taskdef-path }} $TEMP/containerDefinitions.json > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Debug
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
