@@ -42,8 +42,8 @@ inputs:
   mirror_to_s3_bucket:
     description: Mirror task definition to s3 bucket
     required: false
-  template_from_s3_bucket:
-    description: Mirror task definition to s3 bucket
+  use_partial_taskdefinition:
+    description: "NOTE: Experimental. Load templated task definition from S3 bucket, which is created by the `ecs-service` component. This is useful when you want to manage the task definition in the infrastructure repository and the application repository. The infrastructure repository manages things like Volumes and EFS mounts, and the Application repository manages the application code and environment variables."
     required: false
 outputs:
   webapp-url:
@@ -81,7 +81,7 @@ runs:
         cp ${{ inputs.taskdef-path }} ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Fetch Current Task Definition
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.template_from_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.use_partial_taskdefinition != '' }}
       uses: keithweaver/aws-s3-github-action@v1.0.0
       with:
         command: cp
@@ -90,7 +90,7 @@ runs:
         aws_region: ${{ inputs.region }}
 
     - name: Merge Task Definitions
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.template_from_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.use_partial_taskdefinition != '' }}
       shell: bash
       run: |
         TEMP="./${{ steps.tmp.outputs.dir_name }}"
@@ -109,7 +109,7 @@ runs:
         ' $TEMP/s3_task_def.json ${{ inputs.taskdef-path }} > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Debug
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.template_from_s3_bucket != '' && inputs.debug == 'true'}}
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.use_partial_taskdefinition != '' && inputs.debug == 'true'}}
       shell: bash
       run: |
         echo "----------------- S3 Task Definition -----------------"
