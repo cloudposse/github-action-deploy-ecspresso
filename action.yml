@@ -77,7 +77,7 @@ runs:
       if: ${{ inputs.operation == 'deploy' }}
       shell: bash
       run: |
-        mkdir ./${{ steps.tmp.outputs.dir_name }}
+        mkdir -p ./${{ steps.tmp.outputs.dir_name }}
         cp ${{ inputs.taskdef-path }} ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
     - name: Fetch Current Task Definition
