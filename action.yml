@@ -119,7 +119,7 @@ runs:
         echo "----------------- Merged Task Definition -----------------"
         cat ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
 
-    - uses: 1arp/create-a-file-action@0.3
+    - uses: 1arp/create-a-file-action@0.4
       with:
         path: './'
         file: 'ecspresso.yml'
