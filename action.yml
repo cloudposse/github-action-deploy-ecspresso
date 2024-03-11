@@ -42,7 +42,9 @@ inputs:
   mirror_to_s3_bucket:
     description: Mirror task definition to s3 bucket
     required: false
-
+  use_partial_taskdefinition:
+    description: "NOTE: Experimental. Load templated task definition from S3 bucket, which is created by the `ecs-service` component. This is useful when you want to manage the task definition in the infrastructure repository and the application repository. The infrastructure repository manages things like Volumes and EFS mounts, and the Application repository manages the application code and environment variables."
+    required: false
 outputs:
   webapp-url:
     description: "Web Application url"
@@ -63,6 +65,60 @@ runs:
       with:
         version: ${{ inputs.ecspresso-version }}
 
+    - name: Set random environment variables
+      if: ${{ inputs.operation == 'deploy' }}
+      id: tmp
+      shell: bash
+      run: |
+        VALUE=$(echo $RANDOM | md5sum | head -c 20)
+        echo "dir_name=${VALUE}" >> $GITHUB_OUTPUT
+
+    - name: Create TMP dir
+      if: ${{ inputs.operation == 'deploy' }}
+      shell: bash
+      run: |
+        mkdir -p ./${{ steps.tmp.outputs.dir_name }}
+        cp ${{ inputs.taskdef-path }} ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
+    - name: Fetch Current Task Definition
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.use_partial_taskdefinition != '' }}
+      uses: keithweaver/aws-s3-github-action@v1.0.0
+      with:
+        command: cp
+        source: s3://${{ inputs.mirror_to_s3_bucket }}/${{ inputs.cluster }}/${{ inputs.application }}/task-template.json
+        destination: ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json
+        aws_region: ${{ inputs.region }}
+
+    - name: Merge Task Definitions
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.use_partial_taskdefinition != '' }}
+      shell: bash
+      run: |
+        TEMP="./${{ steps.tmp.outputs.dir_name }}"
+        
+        jq --slurp '
+          {
+            containerDefinitions: (
+                reduce (.[0].containerDefinitions[] | {(.name): .}) as $item ({}; . + $item)
+                *
+                reduce (.[1].containerDefinitions[] | {(.name): .}) as $item ({}; . + $item)
+            )
+            | to_entries
+            | map(.value)
+          }
+          + (.[0] + .[1] | del(.containerDefinitions))
+        ' $TEMP/s3_task_def.json ${{ inputs.taskdef-path }} > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
+    - name: Debug
+      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' && inputs.use_partial_taskdefinition != '' && inputs.debug == 'true'}}
+      shell: bash
+      run: |
+        echo "----------------- S3 Task Definition -----------------"
+        cat ./${{ steps.tmp.outputs.dir_name }}/s3_task_def.json | jq
+        echo "----------------- Current Task Definition -----------------"
+        cat ${{ inputs.taskdef-path }}
+        echo "----------------- Merged Task Definition -----------------"
+        cat ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+
     - uses: 1arp/create-a-file-action@0.3
       with:
         path: './'
@@ -71,7 +127,7 @@ runs:
           region: ${{ inputs.region }}
           cluster: ${{ inputs.cluster }}
           service: ${{ inputs.application }}
-          task_definition: ${{ inputs.taskdef-path }}
+          task_definition: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
           timeout: ${{ inputs.timeout }}
 
     - name: Deploy
@@ -83,25 +139,11 @@ runs:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
 
-    - name: Set random environment variables
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
-      id: tmp
-      shell: bash
-      run: |
-        VALUE=$(echo $RANDOM | md5sum | head -c 20)
-        echo "dir_name=${VALUE}" >> $GITHUB_OUTPUT
-
-    - name: Create TMP dir
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
-      shell: bash
-      run: |
-        mkdir ./${{ steps.tmp.outputs.dir_name }}
-
     - name: S3 mirroring
       if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
       shell: bash
       run: |
-        ecspresso --config=./ecspresso.yml render task-definition > ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        ecspresso --config=./ecspresso.yml render task-definition | jq 'del(..|select(. == ""))' > ./${{ steps.tmp.outputs.dir_name }}/task-definition.json
       env:
         IMAGE: ${{ inputs.image }}:${{ inputs.image-tag }}
         AWS_REGION: ${{ inputs.region }}
@@ -113,12 +155,12 @@ runs:
       with:
         args: "--sse AES256"
       env:
-        FILE: ./${{ steps.tmp.outputs.dir_name }}/${{ inputs.application }}.json
+        FILE: ./${{ steps.tmp.outputs.dir_name }}/task-definition.json
         S3_BUCKET: ${{ inputs.mirror_to_s3_bucket }}
         S3_KEY: ${{ inputs.cluster }}/${{ inputs.application }}/task-definition.json
 
     - name: Cleanup TMP dir
-      if: ${{ inputs.operation == 'deploy' && inputs.mirror_to_s3_bucket != '' }}
+      if: ${{ inputs.operation == 'deploy' }}
       shell: bash
       run: |
         rm -rf ./${{ steps.tmp.outputs.dir_name }}
