@@ -15,6 +15,7 @@
 | region | AWS Region | N/A | true |
 | taskdef-path | Task definition path | N/A | true |
 | timeout | Ecspresso timeout | 5m | false |
+| use\_partial\_taskdefinition | NOTE: Experimental. Load templated task definition from S3 bucket, which is created by the `ecs-service` component. This is useful when you want to manage the task definition in the infrastructure repository and the application repository. The infrastructure repository manages things like Volumes and EFS mounts, and the Application repository manages the application code and environment variables. | N/A | false |
 
 
 ## Outputs
