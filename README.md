@@ -73,11 +73,13 @@ Feel free to use it as reference and starting point.
 
 ## S3 Mirroring
 
-This action supports synchronizing `taskDefinitions` to S3. It is designed to work in concert with Cloud Posse's [`ecs-service`](https://github.com/cloudposse/terraform-aws-components/tree/main/modules/ecs-service) component, that will upload a task definition template to S3. This action will then pull that template from S3 and merge it with the local task definition from the repository. Finally, `ecspresso` will be called to deploy the merged task definition to ECS.
+S3 Mirroring is a pattern of uploading the deployed task definition to an S3 Bucket. This is so that the task definition can be updated with the latest image tag, and the terraform does not reset it back to a previous tag set in the infrastructure repository.
 
-This action will then upload the `task-definition.json` that was rendered back to S3. The `ecs-service` component will use the `task-definition.json` file to deploy the application. This ensures future infrastructure deployments do not override application changes, such as image updates, environment variable changes, etc.
+## Partial Task Definition
 
-The Infrastructure repository then manages things like Volumes and EFS mounts, and the Application repository manages the application code and environment variables.
+A "Partial Task Definition" is an authoring pattern where the application repository maintains only the parts of the ECS task definition that the app team owns or changes frequently (for example, container image/tag, environment variables, command/args, CPU/memory for a container). The more static, infrastructure-owned parts (for example, IAM roles, volumes, EFS mounts, log configuration, task-level networking) are provided by a template maintained in the infrastructure repository.
+
+During deployment, this action merges the infrastructure-provided template (optionally fetched from S3) with the local partial task definition from the application repo to produce a complete `task-definition.json`, which is then deployed by `ecspresso`.
 
 ![S3 Mirroring](docs/github-action-deploy-ecspresso_s3-mirroring.drawio.png)
 
@@ -86,8 +88,31 @@ The Infrastructure repository then manages things like Volumes and EFS mounts, a
 
 
 
+## Inputs
+<!-- markdownlint-disable -->
+| Name | Description | Default | Required |
+|------|-------------|---------|----------|
+| application | Application name | N/A | true |
+| cluster | Cluster name | N/A | true |
+| debug | Debug mode | false | false |
+| ecspresso-version | Ecspresso version | v2.1.0 | false |
+| image | Docker image | N/A | true |
+| image-tag | Docker image tag | N/A | true |
+| mirror\_to\_s3\_bucket | Mirror task definition to s3 bucket | N/A | false |
+| operation | Operation (valid options - `deploy`, `destroy`) | deploy | true |
+| region | AWS Region | N/A | true |
+| taskdef-path | Task definition path | N/A | true |
+| timeout | Ecspresso timeout | 5m | false |
+| use\_partial\_taskdefinition | NOTE: Experimental. Load templated task definition from S3 bucket, which is created by the `ecs-service` component. This is useful when you want to manage the task definition in the infrastructure repository and the application repository. The infrastructure repository manages things like Volumes and EFS mounts, and the Application repository manages the application code and environment variables. | N/A | false |
+<!-- markdownlint-restore -->
 
 
+## Outputs
+<!-- markdownlint-disable -->
+| Name | Description |
+|------|-------------|
+| webapp-url | Web Application url |
+<!-- markdownlint-restore -->
 
 
 
@@ -130,7 +155,10 @@ In general, PRs are welcome. We follow the typical "fork-and-pull" Git workflow.
  5. **Push** your work back up to your fork
  6. Submit a **Pull Request** so that we can review your changes
 
-**NOTE:** Be sure to merge the latest changes from "upstream" before making a pull request!## Running Terraform Tests
+**NOTE:** Be sure to merge the latest changes from "upstream" before making a pull request!
+
+
+## Running Terraform Tests
 
 We use [Atmos](https://atmos.tools) to streamline how Terraform tests are run. It centralizes configuration and wraps common test workflows with easy-to-use commands.
 
