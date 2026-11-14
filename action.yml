@@ -61,7 +61,7 @@ runs:
         version: 1.6
         force: 'true'
 
-    - uses: kayac/ecspresso@v2
+    - uses: kayac/ecspresso@v3.0.0
       with:
         version: ${{ inputs.ecspresso-version }}
 
